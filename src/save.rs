@@ -1,51 +1,30 @@
-// use magic_crypt::MagicCryptTrait;
-// use magic_crypt::new_magic_crypt;
-// use std::fs;
-// use std::fs::File;
-// use std::io::prelude::*;
-// use serde::{Deserialize, Serialize};
-// use serde_json::Result;
-// use crate::utils::*;
+use magic_crypt::MagicCryptTrait;
+use magic_crypt::new_magic_crypt;
+use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
+use std::error::Error;
+use crate::db::DB;
 
-// #[derive(Serialize, Deserialize)]
-// pub struct DBData {
-//     pub msgs:Vec<MessageData>
-// }
 
-// #[derive(Serialize, Deserialize)]
-// pub struct MessageData {
-//     pub from:String,
-//     pub tag:String,
-//     pub content:String,
-//     pub signature:String,
-//     pub timeStamp:String
-// }
+pub fn isStoreExisting(filename:&str) -> bool{
+ 	return fs::metadata(filename).is_ok();
+}
+pub fn writeStore(db:&DB, password:&str) -> Result<(), Box<dyn Error>>{
+ 	let mut file = File::create(db.getFileName())?;
+ 	let key = new_magic_crypt!(password, 256);
+ 	let data = key.encrypt_str_to_base64(serde_json::to_string(db)?);
 
-// pub fn attemptFetchIdData(connData:ConnectionData) -> Option<DBData>{
-//  	if isStoreExisting(connData.get_fileName()) {
-//  		let dataStr = read(connData);
-//  		Some(serde_json::from_str(dataStr.as_str()).unwrap())
-//  	}else {
-//  		None
-//  	}
-// }
+ 	file.write_all(data.as_bytes())?;
+ 	file.sync_all();
+ 	Ok(())
+}
+pub fn readStore(filename:&str, password:&str, fileExt:&str) -> Result<DB, Box<dyn Error>>{
+ 	let mut file = File::open(filename)?;
+ 	let mut data = String::new();
+ 	file.read_to_string(&mut data);
+ 	let key = new_magic_crypt!(password, 256);
+ 	let decryptedData = key.decrypt_base64_to_string(&data)?;
 
-// fn isStoreExisting(file:String) -> bool{
-//  	return fs::metadata(file).is_ok();
-// }
-// fn write(connData:ConnectionData, text:String){
-//  	let mut file = File::create(connData.get_fileName()).unwrap();
-//  	let key = new_magic_crypt!(connData.password, 256);
-//  	let data = key.encrypt_str_to_base64(text);
-
-//  	file.write_all(data.as_bytes());
-//  	file.sync_all();
-// }
-// fn read(connData:ConnectionData) -> String{
-//  	let mut file = File::open(connData.get_fileName()).unwrap();
-//  	let mut data = String::new();
-//  	file.read_to_string(&mut data);
-//  	let key = new_magic_crypt!(connData.password, 256);
-
-//  	return key.decrypt_base64_to_string(&data).unwrap();
-// }
+ 	return Ok(serde_json::from_str(&decryptedData)?);
+}
