@@ -104,7 +104,6 @@ impl LogState {
 	    None
 	}
 	pub fn add_message(&mut self, msg:MessageData) -> String{
-	    //let msgs: Vec<&MessageData> = self.msgs.read().collect();
 	    for other_msg_id in self.msgs.iter(){
 	        if other_msg_id.value().get_time_stamp() > msg.get_time_stamp(){
 	            let op = self.msgs.insert_after(Some(other_msg_id), msg);
