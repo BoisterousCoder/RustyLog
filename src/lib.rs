@@ -17,11 +17,12 @@ use std::io::prelude::*;
 
 
 const SAVE_DIR:&str = "./saves";
-const FILE_EXT:&str = "rstore";
+const FILE_EXT:&str = "msglog";
 const DATE_FMT:&str = "%Y %b %d %H:%M:%S%.3f %z";
 
 fn fmt_file_name(name:&str, group:&str) -> String{
-    format!("{}/{}@{}.{}", SAVE_DIR, calc_hash(name), calc_hash(group), FILE_EXT)
+    let filename = calc_hash(&format!("{}@{}", name, group));
+    format!("{}/{}.{}", SAVE_DIR, filename, FILE_EXT)
 }
 
 fn calc_hash(text:&str) -> String{

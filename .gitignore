@@ -14,5 +14,5 @@ Cargo.lock
 
 /target
 /Cargo.lock
-/saves/*.rstore
-/saves/*.rstore.backup
+/saves/*.msglog
+/saves/*.msglog.backup

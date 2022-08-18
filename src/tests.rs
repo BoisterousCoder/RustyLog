@@ -1,30 +1,34 @@
 #![allow(unused)]
 use proptest::prelude::*;
 use crate::*;
+use serial_test::serial;
 
-//const ALLOWED_CHARS:&str = "[a-zA-Z]+0123456789!@#\\$%\\^&\\*\\(\\)_\\+-=\\{\\}\\[\\]:\";\'<>\\?,\\./\\\\ ";
 const ALLOWED_CHARS:&str = ".";
 
 proptest! {
     #[test]
+    #[serial]
     fn can_create_store(user in ALLOWED_CHARS, group in ALLOWED_CHARS, pass in ALLOWED_CHARS) {
         let log = LogState::new(&user, &group, &pass);
 
         log.save(&pass);
+
         assert!(is_store_existing(&log.filename()));
         log.delete_store();
     }
 
     #[test]
+    #[serial]
     fn can_delete_store(user in ALLOWED_CHARS, group in ALLOWED_CHARS, pass in ALLOWED_CHARS) {
         let log = LogState::new(&user, &group, &pass);
 
         log.save(&pass);
-        assert!(!is_store_existing(&log.filename()));
         log.delete_store();
+        assert!(!is_store_existing(&log.filename()));
     }
 
     #[test]
+    #[serial]
     fn can_read_store(user in ALLOWED_CHARS, group in ALLOWED_CHARS, pass in ALLOWED_CHARS) {
         let msg = MessageData {
             from:"Alice".to_string(),
@@ -50,6 +54,7 @@ proptest! {
     }
 
     #[test]
+    #[serial]
     fn can_read_msg(from in ALLOWED_CHARS, tag in ALLOWED_CHARS, content in ALLOWED_CHARS, signature in ALLOWED_CHARS) {
         let msg = MessageData {
             from:from,
@@ -73,6 +78,7 @@ proptest! {
     }
 
     #[test]
+    #[serial]
     fn can_read_decrypt_data(from in ALLOWED_CHARS, content in ALLOWED_CHARS) {
         let msg = MessageData {
             from:from,
