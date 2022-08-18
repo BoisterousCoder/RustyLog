@@ -73,7 +73,7 @@ proptest! {
 
         let log_b = LogState::new("Alice", "test", pass);
 
-        assert!(log_b.msgs()[0] == &msg);
+        assert!(log_b.messages()[0] == &msg);
         log_a.delete_store();
     }
 
@@ -100,6 +100,50 @@ proptest! {
 
         assert!(log_b.decrypted(&msg) == Some(content));
         log_a.delete_store();
+    }
+    #[test]
+    #[serial]
+    fn can_stop_duplicates(from in ALLOWED_CHARS, tag in ALLOWED_CHARS, content in ALLOWED_CHARS, signature in ALLOWED_CHARS) {
+        let msg = MessageData {
+            from:from,
+            tag:tag,
+            content:content,
+            signature:signature,
+            signed_time_stamp:"1999 Jun 8 12:09:14.274 +0000".to_string()
+        };
+        let pass = "password";
+
+        let mut log = LogState::new("Alice", "test", pass);
+
+        log.add_message(msg.clone());
+
+        let log_clone = log.clone();
+
+        log.add_message(msg.clone());
+
+        assert!(log == log_clone);
+    }
+    #[test]
+    #[serial]
+    fn can_stop_duplicates_two(from in ALLOWED_CHARS, tag in ALLOWED_CHARS, content in ALLOWED_CHARS, signature in ALLOWED_CHARS) {
+        let msg = MessageData {
+            from:from,
+            tag:tag,
+            content:content,
+            signature:signature,
+            signed_time_stamp:"1999 Jun 8 12:09:14.274 +0000".to_string()
+        };
+        let pass = "password";
+
+        let mut log = LogState::new("Alice", "test", pass);
+
+        let op = log.add_message(msg).unwrap();
+
+        let log_clone = log.clone();
+
+        log.apply_op(&op);
+
+        assert!(log == log_clone);
     }
 }
 

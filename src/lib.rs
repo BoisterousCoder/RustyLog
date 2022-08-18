@@ -85,7 +85,7 @@ impl LogState {
      	file.sync_all()?;
         Ok(())
 	}
-	pub fn msgs(&self) -> Vec<&MessageData> {
+	pub fn messages(&self) -> Vec<&MessageData> {
 	    return self.msgs.iter().map(|msg_id| msg_id.value()).collect();
 	}
 	pub fn decrypt(&mut self, msg:&MessageData, content:&str){
@@ -103,17 +103,19 @@ impl LogState {
 	    }
 	    None
 	}
-	pub fn add_message(&mut self, msg:MessageData) -> String{
+	pub fn add_message(&mut self, msg:MessageData) -> Option<String>{
 	    for other_msg_id in self.msgs.iter(){
-	        if other_msg_id.value().get_time_stamp() > msg.get_time_stamp(){
+	        if other_msg_id.value() == &msg{
+	            return None;
+	        }else if other_msg_id.value() > &msg{
 	            let op = self.msgs.insert_after(Some(other_msg_id), msg);
 	            self.msgs.apply(op.clone());
-                return serde_json::to_string(&op).unwrap();
+                return Some(serde_json::to_string(&op).unwrap());
 	        }
 	    }
 	    let op = self.msgs.insert_after(self.msgs.last(), msg);
         self.msgs.apply(op.clone());
-        return serde_json::to_string(&op).unwrap();
+        return Some(serde_json::to_string(&op).unwrap());
 	}
 
 	pub fn apply_op(&mut self, op_data:&str) -> Result<(), Box<dyn Error>>{
